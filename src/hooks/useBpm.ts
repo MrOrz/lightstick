@@ -4,16 +4,32 @@ const RESET_TIMEOUT_MS = 10000
 const MAX_TAPS = 8
 
 export function useBpm(onBeat: () => void) {
-  const [bpm, setBpm] = useState(0)
+  // lastManualTapTime serves as a synchronization signal to reset the timer phase
   const [lastManualTapTime, setLastManualTapTime] = useState(0)
   const tapsRef = useRef<number[]>([])
   const timerRef = useRef<any>(null)
   const lastBeatTimeRef = useRef<number>(0)
 
+  // -- Derived values --
+  // Calculate average interval and BPM based on tap history for higher precision
+  let avgInterval = 0
+  let bpm = 0
+
+  const taps = tapsRef.current
+  if (taps.length >= 2) {
+    const intervals = []
+    for (let i = 1; i < taps.length; i++) {
+      intervals.push(taps[i] - taps[i - 1])
+    }
+    avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length
+    bpm = 60000 / avgInterval
+  }
+
   const handleTap = useCallback(() => {
     const now = Date.now()
     const lastTap = tapsRef.current[tapsRef.current.length - 1]
 
+    // Reset history if the interval since last tap is too long
     if (lastTap && now - lastTap > RESET_TIMEOUT_MS) {
       tapsRef.current = []
     }
@@ -23,25 +39,14 @@ export function useBpm(onBeat: () => void) {
       tapsRef.current.shift()
     }
 
-    if (tapsRef.current.length >= 2) {
-      const intervals = []
-      for (let i = 1; i < tapsRef.current.length; i++) {
-        intervals.push(tapsRef.current[i] - tapsRef.current[i - 1])
-      }
-      const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length
-      const newBpm = Math.round(60000 / avgInterval)
-      setBpm(newBpm)
-
-      // Update last manual tap time to sync the timer
-      setLastManualTapTime(now)
-      lastBeatTimeRef.current = now
-    } else {
-      setBpm(0)
-    }
+    // Trigger re-render to recalculate avgInterval and reset the timer phase
+    setLastManualTapTime(now)
+    lastBeatTimeRef.current = now
   }, [])
 
   useEffect(() => {
-    if (bpm <= 0) {
+    // If not enough data to calculate BPM, ensure timer is cleared
+    if (avgInterval <= 0) {
       if (timerRef.current) {
         clearInterval(timerRef.current)
         timerRef.current = null
@@ -49,25 +54,20 @@ export function useBpm(onBeat: () => void) {
       return
     }
 
-    const intervalMs = 60000 / bpm
-
     const tick = () => {
-      const now = Date.now()
-      // If we are still tapping, don't trigger auto-beat too close to the last manual tap
-      // Actually, if we just tapped, handleTap updated lastBeatTimeRef.
-      // We want the auto-beat to be intervalMs after the last beat (manual or auto).
       onBeat()
-      lastBeatTimeRef.current = now
+      lastBeatTimeRef.current = Date.now()
     }
 
-    // Schedule the next beat based on when the last beat occurred
+    // Calculate time until the next beat to align with manual taps
     const timeSinceLastBeat = Date.now() - lastBeatTimeRef.current
-    const delay = Math.max(0, intervalMs - timeSinceLastBeat)
+    const delay = Math.max(0, avgInterval - timeSinceLastBeat)
 
     const startTimer = () => {
-      timerRef.current = setInterval(tick, intervalMs)
+      timerRef.current = setInterval(tick, avgInterval)
     }
 
+    // Use a one-time timeout to align the phase, then start the regular interval
     const timeout = setTimeout(() => {
       tick()
       startTimer()
@@ -80,7 +80,7 @@ export function useBpm(onBeat: () => void) {
         timerRef.current = null
       }
     }
-  }, [bpm, onBeat, lastManualTapTime])
+  }, [avgInterval, lastManualTapTime, onBeat])
 
   return { bpm, handleTap }
 }

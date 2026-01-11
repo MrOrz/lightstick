@@ -49,7 +49,7 @@ export default function GlowStick() {
       </div>
       {bpm > 0 && (
         <div className="absolute bottom-8 text-white/40 text-2xl font-mono">
-          {bpm} BPM
+          {bpm.toFixed(2)} BPM
         </div>
       )}
     </div>
