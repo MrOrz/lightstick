@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useWakeLock } from '../hooks/useWakeLock'
 import { useFullscreen } from '../hooks/useFullscreen'
-import { usePointerManager } from '../hooks/usePointerManager'
 import { useBpm } from '../hooks/useBpm'
 
 const COLORS = [
@@ -30,11 +29,6 @@ export default function GlowStick() {
 
   const { bpm, handleTap } = useBpm(nextColor)
 
-  const { handlers } = usePointerManager(() => {
-    nextColor()
-    handleTap()
-  })
-
   const currentColor = COLORS[currentColorIndex]
 
   return (
@@ -42,7 +36,10 @@ export default function GlowStick() {
       id="glow-stick-surface"
       className="w-full h-screen flex flex-col items-center justify-center transition-colors duration-300 cursor-pointer select-none touch-manipulation relative"
       style={{ backgroundColor: currentColor }}
-      {...handlers}
+      onPointerDown={() => {
+        nextColor()
+        handleTap()
+      }}
     >
       <div className="text-white/20 text-6xl font-bold animate-pulse">
         {currentColorIndex + 1} / {COLORS.length}
