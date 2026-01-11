@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useWakeLock } from '../hooks/useWakeLock'
 import { useFullscreen } from '../hooks/useFullscreen'
 import { usePointerManager } from '../hooks/usePointerManager'
+import { useBpm } from '../hooks/useBpm'
 
 const COLORS = [
   '#FF1744',
@@ -22,8 +23,16 @@ export default function GlowStick() {
   const [currentColorIndex, setCurrentColorIndex] = useState(0)
   useWakeLock()
   useFullscreen()
-  const { handlers } = usePointerManager(() => {
+
+  const nextColor = useCallback(() => {
     setCurrentColorIndex((prev) => (prev + 1) % COLORS.length)
+  }, [])
+
+  const { bpm, handleTap } = useBpm(nextColor)
+
+  const { handlers } = usePointerManager(() => {
+    nextColor()
+    handleTap()
   })
 
   const currentColor = COLORS[currentColorIndex]
@@ -31,13 +40,19 @@ export default function GlowStick() {
   return (
     <div
       id="glow-stick-surface"
-      className="w-full h-screen flex items-center justify-center transition-colors duration-300 cursor-pointer select-none touch-manipulation"
+      className="w-full h-screen flex flex-col items-center justify-center transition-colors duration-300 cursor-pointer select-none touch-manipulation relative"
       style={{ backgroundColor: currentColor }}
       {...handlers}
     >
       <div className="text-white/20 text-6xl font-bold animate-pulse">
         {currentColorIndex + 1} / {COLORS.length}
       </div>
+      {bpm > 0 && (
+        <div className="absolute bottom-8 text-white/40 text-2xl font-mono">
+          {bpm} BPM
+        </div>
+      )}
     </div>
   )
 }
+
