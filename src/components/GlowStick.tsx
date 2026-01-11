@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useWakeLock } from '../hooks/useWakeLock'
 import { useFullscreen } from '../hooks/useFullscreen'
-import { useColorChange } from '../hooks/useColorChange'
+import { usePointerManager } from '../hooks/usePointerManager'
 
 const COLORS = [
   '#FF1744',
@@ -22,7 +22,7 @@ export default function GlowStick() {
   const [currentColorIndex, setCurrentColorIndex] = useState(0)
   useWakeLock()
   useFullscreen()
-  const { handlers } = useColorChange(() => {
+  const { handlers } = usePointerManager(() => {
     setCurrentColorIndex((prev) => (prev + 1) % COLORS.length)
   })
 
@@ -31,7 +31,7 @@ export default function GlowStick() {
   return (
     <div
       id="glow-stick-surface"
-      className="w-full h-screen flex items-center justify-center transition-colors duration-300 cursor-pointer select-none"
+      className="w-full h-screen flex items-center justify-center transition-colors duration-300 cursor-pointer select-none touch-manipulation"
       style={{ backgroundColor: currentColor }}
       {...handlers}
     >
