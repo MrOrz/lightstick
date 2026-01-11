@@ -3,35 +3,38 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 const RESET_TIMEOUT_MS = 10000
 const MAX_TAPS = 8
 
+function getAvgInterval(taps: number[]) {
+  if (taps.length < 2) return 0
+  return (taps[taps.length - 1] - taps[0]) / (taps.length - 1)
+}
+
 export function useBpm(onBeat: () => void) {
   // lastManualTapTime serves as a synchronization signal to reset the timer phase
   const [lastManualTapTime, setLastManualTapTime] = useState(0)
+
+  // timestamp (ms) of the latest taps
   const tapsRef = useRef<number[]>([])
   const timerRef = useRef<any>(null)
+
+  // timestamp (ms) of the last beat
   const lastBeatTimeRef = useRef<number>(0)
-
-  // -- Derived values --
-  // Calculate average interval and BPM based on tap history for higher precision
-  let avgInterval = 0
-  let bpm = 0
-
-  const taps = tapsRef.current
-  if (taps.length >= 2) {
-    const intervals = []
-    for (let i = 1; i < taps.length; i++) {
-      intervals.push(taps[i] - taps[i - 1])
-    }
-    avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length
-    bpm = 60000 / avgInterval
-  }
 
   const handleTap = useCallback(() => {
     const now = Date.now()
-    const lastTap = tapsRef.current[tapsRef.current.length - 1]
+    const taps = tapsRef.current
+    const lastTap = taps[taps.length - 1]
 
-    // Reset history if the interval since last tap is too long
-    if (lastTap && now - lastTap > RESET_TIMEOUT_MS) {
-      tapsRef.current = []
+    if (lastTap) {
+      const avgInterval = getAvgInterval(taps)
+      // Reset history if:
+      // 1. Hard reset timeout reached (10s)
+      // 2. Or, if we have an established rhythm, more than 4 beats have passed
+      const isLongWait = now - lastTap > RESET_TIMEOUT_MS
+      const isOffBeat = avgInterval > 0 && now - lastTap > avgInterval * 4
+
+      if (isLongWait || isOffBeat) {
+        tapsRef.current = []
+      }
     }
 
     tapsRef.current.push(now)
@@ -39,13 +42,15 @@ export function useBpm(onBeat: () => void) {
       tapsRef.current.shift()
     }
 
-    // Trigger re-render to recalculate avgInterval and reset the timer phase
+    // Trigger re-render to reset the timer phase
     setLastManualTapTime(now)
     lastBeatTimeRef.current = now
   }, [])
 
   useEffect(() => {
-    // If not enough data to calculate BPM, ensure timer is cleared
+    const avgInterval = getAvgInterval(tapsRef.current)
+
+    // If not enough data to calculate rhythm, ensure timer is cleared
     if (avgInterval <= 0) {
       if (timerRef.current) {
         clearInterval(timerRef.current)
@@ -80,7 +85,11 @@ export function useBpm(onBeat: () => void) {
         timerRef.current = null
       }
     }
-  }, [avgInterval, lastManualTapTime, onBeat])
+  }, [lastManualTapTime, onBeat])
 
-  return { bpm, handleTap }
+  const currentInterval = getAvgInterval(tapsRef.current)
+  return {
+    bpm: currentInterval > 0 ? 60000 / currentInterval : 0,
+    handleTap
+  }
 }
