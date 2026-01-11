@@ -1,22 +1,18 @@
 import { useEffect, useState, useRef } from 'react'
 
 const COLORS = [
-  '#FF1744', // Vivid Red
-  '#F50057', // Pink
-  '#D500F9', // Purple
-  '#651FFF', // Deep Purple
-  '#3D5AFE', // Indigo
-  '#2979FF', // Blue
-  '#00B0FF', // Light Blue
-  '#00E5FF', // Cyan
-  '#1DE9B6', // Teal
-  '#00E676', // Green
-  '#76FF03', // Light Green
-  '#C6FF00', // Lime
-  '#FFEA00', // Yellow
-  '#FFC400', // Amber
-  '#FF9100', // Orange
-  '#FF3D00', // Deep Orange
+  '#FF1744',
+  '#FF9100',
+  '#FF3D00',
+  '#FFEA00',
+  '#acc700',
+  '#00E676',
+  '#00c22a',
+  '#2dffb2',
+  '#2979FF',
+  '#00E5FF',
+  '#D500F9',
+  '#651FFF',
 ]
 
 export default function GlowStick() {
