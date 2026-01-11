@@ -21,49 +21,76 @@ const COLORS = [
 
 export default function GlowStick() {
   const [currentColorIndex, setCurrentColorIndex] = useState(0)
-  const [wakeLock, setWakeLock] = useState<WakeLockSentinel | null>(null)
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null)
   const pointerDownTime = useRef<number>(0)
   const TAP_THRESHOLD_MS = 200
 
-  // Request wake lock
+  // Request wake lock and fullscreen
   useEffect(() => {
-    const requestWakeLock = async () => {
+    const requestLock = async () => {
       try {
-        if ('wakeLock' in navigator) {
+        if ('wakeLock' in navigator && !wakeLockRef.current) {
           const lock = await navigator.wakeLock.request('screen')
-          setWakeLock(lock)
+          wakeLockRef.current = lock
           console.log('Wake Lock acquired')
+
+          lock.addEventListener('release', () => {
+            wakeLockRef.current = null
+            console.log('Wake Lock released')
+          })
         }
       } catch (err) {
         console.error('Wake Lock request failed:', err)
       }
     }
 
-    requestWakeLock()
+    const requestFS = async () => {
+      try {
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen()
+        }
+      } catch (err) {
+        // This will likely fail on first mount if not triggered directly by click
+        // but that's okay, handlePointerUp will catch it on first tap
+        console.log('Initial fullscreen request failed:', err)
+      }
+    }
+
+    requestLock()
+    requestFS()
 
     // Re-acquire wake lock if visibility changes
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && wakeLock === null) {
-        requestWakeLock()
+      if (document.visibilityState === 'visible') {
+        requestLock()
       }
     }
 
     document.addEventListener('visibilitychange', handleVisibilityChange)
 
     return () => {
-      if (wakeLock) {
-        wakeLock.release()
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release()
       }
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [wakeLock])
+  }, [])
 
   const handlePointerDown = () => {
     pointerDownTime.current = Date.now()
   }
 
-  const handlePointerUp = () => {
+  const handlePointerUp = async () => {
     const duration = Date.now() - pointerDownTime.current
+
+    // Try to re-enter fullscreen if lost (e.g. after screen lock)
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+      try {
+        await document.documentElement.requestFullscreen()
+      } catch (err) {
+        console.log('Recover fullscreen failed:', err)
+      }
+    }
 
     // Only change color if it was a quick tap (not a long hold)
     if (duration < TAP_THRESHOLD_MS) {

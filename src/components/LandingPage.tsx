@@ -5,16 +5,7 @@ interface LandingPageProps {
 }
 
 export default function LandingPage({ onStart }: LandingPageProps) {
-  const handleStart = async () => {
-    try {
-      // Request fullscreen
-      if (document.documentElement.requestFullscreen) {
-        await document.documentElement.requestFullscreen()
-      }
-    } catch (err) {
-      console.log('Fullscreen request failed:', err)
-    }
-
+  const handleStart = () => {
     onStart()
   }
 
