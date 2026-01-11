@@ -9,7 +9,7 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-pink-900 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-indigo-950 bg-gradient-to-br from-purple-900 via-indigo-900 to-pink-900 flex items-center justify-center p-6">
       <div className="max-w-2xl w-full space-y-8 text-center">
         <div className="space-y-4">
           <h1 className="text-6xl font-bold text-white mb-4 animate-pulse">
@@ -56,8 +56,8 @@ export default function LandingPage() {
           onClick={handleStart}
           className={cn(
             "w-full py-6 px-8 rounded-2xl",
-            "bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500",
-            "hover:from-pink-600 hover:via-purple-600 hover:to-indigo-600",
+            "bg-purple-600 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500",
+            "hover:bg-purple-700 hover:from-pink-600 hover:via-purple-600 hover:to-indigo-600",
             "text-white text-2xl font-bold",
             "transform transition-all duration-200",
             "hover:scale-105 active:scale-95",
