@@ -29,16 +29,8 @@ export default function LandingPage() {
             <div className="flex items-start gap-3">
               <span className="text-2xl">👆</span>
               <div>
-                <p className="font-semibold">輕觸換色</p>
-                <p className="text-sm text-purple-200">快速點擊螢幕即可切換螢光棒顏色</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">⏰</span>
-              <div>
-                <p className="font-semibold">防止誤觸</p>
-                <p className="text-sm text-purple-200">長按不會觸發換色（避免握持時誤觸）</p>
+                <p className="font-semibold">節拍換色</p>
+                <p className="text-sm text-purple-200">隨節拍輕觸螢幕，即可切換顏色</p>
               </div>
             </div>
 
@@ -47,14 +39,6 @@ export default function LandingPage() {
               <div>
                 <p className="font-semibold">全螢幕模式</p>
                 <p className="text-sm text-purple-200">自動進入全螢幕，獲得最佳體驗</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">💡</span>
-              <div>
-                <p className="font-semibold">螢幕常亮</p>
-                <p className="text-sm text-purple-200">啟動後螢幕將保持開啟，不會自動熄滅</p>
               </div>
             </div>
 
