@@ -1,17 +1,14 @@
-import { useState } from 'react'
+import { Routes, Route } from 'react-router'
 import LandingPage from './components/LandingPage'
 import GlowStick from './components/GlowStick'
 
 function App() {
-  const [isActive, setIsActive] = useState(false)
-
   return (
     <div className="w-full h-screen">
-      {!isActive ? (
-        <LandingPage onStart={() => setIsActive(true)} />
-      ) : (
-        <GlowStick />
-      )}
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/app" element={<GlowStick />} />
+      </Routes>
     </div>
   )
 }

@@ -1,12 +1,11 @@
+import { useNavigate } from 'react-router'
 import { cn } from '../lib/utils'
 
-interface LandingPageProps {
-  onStart: () => void
-}
+export default function LandingPage() {
+  const navigate = useNavigate()
 
-export default function LandingPage({ onStart }: LandingPageProps) {
   const handleStart = () => {
-    onStart()
+    navigate('/app')
   }
 
   return (
